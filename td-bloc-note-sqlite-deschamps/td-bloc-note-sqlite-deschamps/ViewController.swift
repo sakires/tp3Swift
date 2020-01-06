@@ -55,12 +55,75 @@ class ViewController: UIViewController {
     }
     
     @IBAction func insertNote() {
+        let alert = UIAlertController(title: "Insert Note", message: nil, preferredStyle: .alert)
+        alert.addTextField{ (tf) in tf.placeholder = "Title" }
+        alert.addTextField{ (tf) in tf.placeholder = "Desc" }
+        let action = UIAlertAction(title: "Save", style: .default){ (action) in
+            guard let noteTitle = alert.textFields?.first?.text,
+                let noteDesc = alert.textFields?.last?.text
+                else {
+                    return
+            }
+            print(noteTitle)
+            print(noteDesc)
+            
+            if self.db != nil {
+                let noteDateCreation = NSDate() as Date
+                let dbStatus = self.db!.insert("'\(self.dbTableName)'", rowInfo: ["title":"'\(noteTitle)'",
+                    "desc":"'\(noteDesc)'",
+                    "date_creation":"'\(noteDateCreation)'"])
+                if dbStatus == SQLITE_OK {
+                    print("A new note is inserted")
+                }else{
+                    print("Failed : insert note")
+                }
+            }
+        }
+        alert.addAction(action)
+        present(alert,animated: true,completion: nil)
     }
     
     @IBAction func listeNote() {
+        let statement = db!.fetch(dbTableName, cond: nil, sortBy: nil, offset: nil)
+        while sqlite3_step(statement) == SQLITE_ROW {
+            let noteId = sqlite3_column_int(statement, 0)
+            let noteTitle = String(cString: sqlite3_column_text(statement,1))
+            let noteDesc = String(cString: sqlite3_column_text(statement,2))
+            let noteDateCreation = String(cString: sqlite3_column_text(statement,3))
+            print("""
+                noteId : \(noteId)
+                noteTitle : \(noteTitle)
+                noteDesc : \(noteDesc)
+                noteDateCreation : \(noteDateCreation)
+            """)
+        }
     }
     
     @IBAction func updateNote() {
+        let alert = UIAlertController(title: "Update Note", message: nil, preferredStyle: .alert)
+        alert.addTextField{ (tf) in tf.placeholder = "Note Id" }
+        alert.addTextField{ (tf) in tf.placeholder = "Title" }
+        
+        let action = UIAlertAction(title: "Save", style: .default){ (_) in
+            guard let  noteID = alert.textFields?.first?.text,
+                let noteTitle = alert.textFields?.last?.text
+                else {
+                    return
+            }
+            print(noteID)
+            print(noteTitle)
+            
+            if self.db != nil {
+                let dbStatus = self.db!.update("'\(self.dbTableName)'", cond: "id = '\(noteID)'", rowInfo: ["title": "'\(noteTitle)'"])
+                if dbStatus == SQLITE_OK {
+                    print("A note: \(noteID) is updated")
+                }else{
+                    print("Failed : update note \(noteID)")
+                }
+            }
+        }
+        alert.addAction(action)
+        present(alert,animated: true,completion: nil)
     }
     
     @IBAction func deleteNote() {
