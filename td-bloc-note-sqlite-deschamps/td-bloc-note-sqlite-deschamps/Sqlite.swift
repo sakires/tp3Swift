@@ -87,34 +87,15 @@ class Sqlite {
         var statement: OpaquePointer? = nil
         var dbStatus: Int32 = SQLITE_ERROR
         
-        var sqlCmd: String = "update \(tableName) set "
+
         
-        //row info
-        var info: [String] = []
-        for (key,value) in rowInfo {
-            info.append("\(key) = \(value)")
-        }
-        sqlCmd += info.joined(separator: ",")
-        
-        // condition
-        if let condition = cond {
-            sqlCmd += " where \(condition)"
-        }
-        
-        dbStatus = sqlite3_prepare_v2(self.dbPtr, String(sqlCmd), -1, &statement, nil)
-        if dbStatus == SQLITE_OK && sqlite3_step(statement) == SQLITE_DONE {
-            print("Update data success.")
-            return dbStatus
-        }
-        sqlite3_finalize(statement)
-        return dbStatus
     }
     
     func delete(_  tableName:String, cond:String?) -> Int32 {
         var statement: OpaquePointer? = nil
         var dbStatus: Int32 = SQLITE_ERROR
         
-        var sqlCmd: String = "delete \(tableName) "
+        var sqlCmd: String = "delete from \(tableName) "
         // condition
         if let condition = cond {
             sqlCmd += " where \(condition)"

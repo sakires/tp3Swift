@@ -127,6 +127,27 @@ class ViewController: UIViewController {
     }
     
     @IBAction func deleteNote() {
+        let alert = UIAlertController(title: "Delete Note", message: nil, preferredStyle: .alert)
+        alert.addTextField{ (tf) in tf.placeholder = "Note Id" }
+        
+        let action = UIAlertAction(title: "Save", style: .default){ (_) in
+            guard let  noteID = alert.textFields?.first?.text
+                else {
+                    return
+            }
+            print(noteID)
+            
+            if self.db != nil {
+                let dbStatus = self.db!.delete("\(self.dbTableName)", cond: "id = '\(noteID)'")
+                if dbStatus == SQLITE_OK {
+                    print("A note: \(noteID) is delete")
+                }else{
+                    print("Failed : delete note \(noteID)")
+                }
+            }
+        }
+        alert.addAction(action)
+        present(alert,animated: true,completion: nil)
     }
     
 }
